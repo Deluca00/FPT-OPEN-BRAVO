@@ -1,0 +1,18 @@
+flask>=2.3.0
+flask-cors>=4.0.0
+psycopg2-binary>=2.9.9
+python-dotenv>=1.0.0
+cryptography>=41.0.0
+reportlab>=4.0.0
+qrcode>=7.4.0
+pillow>=10.0.0
+pandas>=2.0.0
+openpyxl>=3.1.0
+
+# Optional: AI Detection (YOLO)
+# Uncomment the following lines to enable AI detection:
+# ultralytics>=8.0.0
+# opencv-python>=4.8.0
+
+# Optional: SSL Certificate Generation
+# pyOpenSSL>=23.0.0

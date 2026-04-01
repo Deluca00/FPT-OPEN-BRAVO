@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hướng dẫn sử dụng Barcode Scanner App</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            color: #333;
+        }
+        h1 {
+            color: #e65100;
+            text-align: center;
+            border-bottom: 3px solid #e65100;
+            padding-bottom: 20px;
+        }
+        h2 {
+            color: #1565c0;
+            border-left: 4px solid #1565c0;
+            padding-left: 15px;
+            margin-top: 40px;
+        }
+        h3 {
+            color: #2e7d32;
+            margin-top: 25px;
+        }
+        h4 {
+            color: #6a1b9a;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        .highlight {
+            background-color: #fff3e0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #ffebee;
+            border-left: 4px solid #c62828;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .info {
+            background-color: #e3f2fd;
+            border-left: 4px solid #1565c0;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #e8f5e9;
+            border-left: 4px solid #2e7d32;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        pre {
+            background-color: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        .toc {
+            background-color: #fafafa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .toc a {
+            color: #1565c0;
+            text-decoration: none;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin: 10px 0;
+        }
+        .step-number {
+            background-color: #e65100;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            flex-shrink: 0;
+            font-weight: bold;
+        }
+        .icon {
+            font-size: 1.2em;
+            margin-right: 5px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+            color: #666;
+        }
+        .cover {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .cover img {
+            max-width: 200px;
+        }
+        .version-info {
+            background-color: #e8eaf6;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        @media print {
+            body {
+                max-width: 100%;
+            }
+            h2 {
+                page-break-before: always;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="cover">
+    <h1>📖 HƯỚNG DẪN SỬ DỤNG<br>ỨNG DỤNG BARCODE SCANNER</h1>
+    <p style="font-size: 1.3em; color: #666;">FPT University - Openbravo ERP Integration</p>
+    <div class="version-info">
+        <strong>Phiên bản:</strong> 1.0 &nbsp;|&nbsp; 
+        <strong>Cập nhật:</strong> 03/02/2026
+    </div>
+</div>
+
+<!-- MỤC LỤC -->
+<div class="toc">
+    <h2 style="margin-top: 0;">📋 MỤC LỤC</h2>
+    <ol>
+        <li><a href="#gioi-thieu">Giới thiệu</a></li>
+        <li><a href="#yeu-cau">Yêu cầu hệ thống</a></li>
+        <li><a href="#khoi-dong">Khởi động ứng dụng</a></li>
+        <li><a href="#giao-dien">Giao diện chính</a></li>
+        <li><a href="#tab-scanner">Tab Scanner - Quét mã vạch</a></li>
+        <li><a href="#tab-po">Tab Purchase Orders - Đơn đặt hàng</a></li>
+        <li><a href="#tab-gr">Tab Goods Receipts - Phiếu nhập kho</a></li>
+        <li><a href="#tab-warehouse">Tab Warehouse - Quản lý kho</a></li>
+        <li><a href="#tab-invoice">Tab Invoice Export - Đơn bán hàng</a></li>
+        <li><a href="#tab-ai">Tab AI Detect - Phát hiện AI</a></li>
+        <li><a href="#share-qr">Chia sẻ QR Code</a></li>
+        <li><a href="#cloudflare">Truy cập từ xa với Cloudflare</a></li>
+        <li><a href="#faq">Câu hỏi thường gặp</a></li>
+    </ol>
+</div>
+
+<!-- 1. GIỚI THIỆU -->
+<h2 id="gioi-thieu">1. Giới thiệu</h2>
+
+<h3>1.1. Mục đích</h3>
+<p>Ứng dụng <strong>Barcode Scanner</strong> được phát triển để hỗ trợ quản lý kho hàng, xử lý đơn hàng và kiểm tra chất lượng sản phẩm, tích hợp trực tiếp với hệ thống <strong>Openbravo ERP</strong>.</p>
+
+<h3>1.2. Tính năng chính</h3>
+<div class="success">
+    <ul>
+        <li>✅ Quét mã vạch sản phẩm bằng camera hoặc nhập thủ công</li>
+        <li>✅ Quản lý đơn đặt hàng (Purchase Orders)</li>
+        <li>✅ Tạo và quản lý phiếu nhập kho (Goods Receipts)</li>
+        <li>✅ Quản lý kho hàng và chuyển kho (Warehouse Movement)</li>
+        <li>✅ Tạo đơn bán hàng và xuất kho (Sale Orders & Goods Shipments)</li>
+        <li>✅ Phát hiện sản phẩm lỗi và kiểm tra đóng gói bằng AI</li>
+        <li>✅ Truy cập từ xa qua Cloudflare Tunnel</li>
+    </ul>
+</div>
+
+<!-- 2. YÊU CẦU HỆ THỐNG -->
+<h2 id="yeu-cau">2. Yêu cầu hệ thống</h2>
+
+<h3>2.1. Phần cứng</h3>
+<ul>
+    <li>Máy tính hoặc điện thoại có kết nối mạng</li>
+    <li>Camera (nếu sử dụng chức năng quét mã vạch)</li>
+    <li>Màn hình tối thiểu 320px (responsive)</li>
+</ul>
+
+<h3>2.2. Phần mềm</h3>
+<ul>
+    <li>Trình duyệt web hiện đại: Chrome, Firefox, Edge, Safari</li>
+    <li>Kết nối đến server Openbravo ERP</li>
+    <li>Python 3.8+ (cho việc chạy server)</li>
+</ul>
+
+<!-- 3. KHỞI ĐỘNG -->
+<h2 id="khoi-dong">3. Khởi động ứng dụng</h2>
+
+<h3>3.1. Khởi động thủ công</h3>
+<div class="step">
+    <div class="step-number">1</div>
+    <div>Mở thư mục <code>barcode_app</code></div>
+</div>
+<div class="step">
+    <div class="step-number">2</div>
+    <div>Chạy file <code>start.bat</code> (Windows)</div>
+</div>
+<div class="step">
+    <div class="step-number">3</div>
+    <div>Truy cập: <code>http://localhost:5000</code> hoặc <code>https://localhost:5443</code></div>
+</div>
+
+<h3>3.2. Khởi động tự động với Windows</h3>
+<div class="step">
+    <div class="step-number">1</div>
+    <div>Chạy file <code>add_to_startup.bat</code> để thêm vào Windows Startup</div>
+</div>
+<div class="step">
+    <div class="step-number">2</div>
+    <div>Ứng dụng sẽ tự động chạy khi khởi động máy tính</div>
+</div>
+
+<h3>3.3. Truy cập từ thiết bị di động</h3>
+<div class="step">
+    <div class="step-number">1</div>
+    <div>Kết nối cùng mạng WiFi với server</div>
+</div>
+<div class="step">
+    <div class="step-number">2</div>
+    <div>Truy cập qua IP máy chủ: <code>http://192.168.x.x:5000</code></div>
+</div>
+<div class="step">
+    <div class="step-number">3</div>
+    <div>Hoặc quét mã QR trong phần <strong>Share QR Code</strong></div>
+</div>
+
+<!-- 4. GIAO DIỆN CHÍNH -->
+<h2 id="giao-dien">4. Giao diện chính</h2>
+
+<h3>4.1. Thanh điều hướng (Navigation Bar)</h3>
+<p>Ứng dụng có 6 tab chính:</p>
+
+<table>
+    <tr>
+        <th>Icon</th>
+        <th>Tab</th>
+        <th>Chức năng</th>
+    </tr>
+    <tr>
+        <td>📱</td>
+        <td><strong>Scanner</strong></td>
+        <td>Quét mã vạch sản phẩm</td>
+    </tr>
+    <tr>
+        <td>🛒</td>
+        <td><strong>Purchase Orders</strong></td>
+        <td>Quản lý đơn đặt hàng</td>
+    </tr>
+    <tr>
+        <td>📦</td>
+        <td><strong>Goods Receipts</strong></td>
+        <td>Quản lý phiếu nhập kho</td>
+    </tr>
+    <tr>
+        <td>🏢</td>
+        <td><strong>Warehouse</strong></td>
+        <td>Quản lý kho và chuyển hàng</td>
+    </tr>
+    <tr>
+        <td>🧾</td>
+        <td><strong>Invoice Export</strong></td>
+        <td>Đơn bán hàng & xuất kho</td>
+    </tr>
+    <tr>
+        <td>🤖</td>
+        <td><strong>AI Detect</strong></td>
+        <td>Phát hiện lỗi bằng AI</td>
+    </tr>
+</table>
+
+<h3>4.2. Thanh công cụ</h3>
+<ul>
+    <li><strong>Nút Home</strong>: Quay về tab Scanner</li>
+    <li><strong>Nút Share</strong>: Chia sẻ QR Code để truy cập ứng dụng</li>
+</ul>
+
+<!-- 5. TAB SCANNER -->
+<h2 id="tab-scanner">5. Tab Scanner - Quét mã vạch</h2>
+
+<h3>5.1. Mô tả</h3>
+<p>Tab chính để quét và tìm kiếm sản phẩm theo mã vạch (barcode). Hiển thị tổng quan các thống kê nhanh.</p>
+
+<h3>5.2. Thống kê nhanh</h3>
+<p>Phần đầu tab hiển thị 3 ô thống kê:</p>
+<ul>
+    <li><strong>PO</strong>: Số lượng Purchase Orders đang xử lý</li>
+    <li><strong>GR</strong>: Số lượng Goods Receipts đang xử lý</li>
+    <li><strong>Scanned</strong>: Số lượng sản phẩm đã quét trong phiên</li>
+</ul>
+
+<h3>5.3. Cách sử dụng</h3>
+
+<h4>5.3.1. Quét bằng camera</h4>
+<div class="step">
+    <div class="step-number">1</div>
+    <div>Nhấn nút <strong>📷 Camera</strong> màu xanh</div>
+</div>
+<div class="step">
+    <div class="step-number">2</div>
+    <div>Cho phép trình duyệt truy cập camera</div>
+</div>
+<div class="step">
+    <div class="step-number">3</div>
+    <div>Hướng camera vào mã vạch sản phẩm</div>
+</div>
+<div class="step">
+    <div class="step-number">4</div>
+    <div>Hệ thống tự động nhận dạng và tìm kiếm</div>
+</div>
+
+<h4>5.3.2. Nhập thủ công</h4>
+<div class="step">
+    <div class="step-number">1</div>
+    <div>Nhập mã vạch vào ô <strong>"Enter or scan barcode..."</strong></div>
+</div>
+<div class="step">
+    <div class="step-number">2</div>
+    <div>Nhấn <strong>Enter</strong> hoặc click nút <strong>🔍 Search</strong></div>
+</div>
+<div class="step">
+    <div class="step-number">3</div>
+    <div>Kết quả hiển thị bên dưới</div>
+</div>
+
+<h3>5.4. Chi tiết Purchase Order (PO Details)</h3>
+<p>Khi chọn một PO, màn hình hiển thị:</p>
+
+<table>
+    <tr>
+        <th>Cột</th>
+        <th>Mô tả</th>
+    </tr>
+    <tr><td><strong>#</strong></td><td>Số thứ tự</td></tr>
+    <tr><td><strong>Sản phẩm</strong></td><td>Tên sản phẩm</td></tr>
+    <tr><td><strong>Barcode</strong></td><td>Mã vạch</td></tr>
+    <tr><td><strong>Đặt</strong></td><td>Số lượng đặt hàng</td></tr>
+    <tr><td><strong>Đã nhận</strong></td><td>Số lượng đã nhận</td></tr>
+    <tr><td><strong>Còn</strong></td><td>Số lượng còn lại cần nhận</td></tr>
+    <tr><td><strong>Nhập</strong></td><td>Ô nhập số lượng nhận lần này</td></tr>
+    <tr><td><strong>Chọn</strong></td><td>Checkbox chọn sản phẩm</td></tr>
+</table>
+
+<h3>5.5. Quy trình tạo Goods Receipt từ Scanner</h3>
+<div class="highlight">
+    <div class="step">
+        <div class="step-number">1</div>
+        <div>Quét barcode sản phẩm → Chọn Purchase Order</div>
+    </div>
+    <div class="step">
+        <div class="step-number">2</div>
+        <div>Nhập số lượng nhận vào cột <strong>"Nhập"</strong></div>
+    </div>
+    <div class="step">
+        <div class="step-number">3</div>
+        <div>Tick checkbox ở cột <strong>"Chọn"</strong> cho các sản phẩm cần nhập</div>
+    </div>
+    <div class="step">
+        <div class="step-number">4</div>
+        <div>Chọn <strong>Warehouse</strong> (kho nhập)</div>
+    </div>
+    <div class="step">
+        <div class="step-number">5</div>
+        <div>Click <strong>"Tạo Goods Receipt"</strong></div>
+    </div>
+    <div class="step">
+        <div class="step-number">6</div>
+        <div>Xác nhận tạo → Hệ thống tự động tạo GR trong Openbravo</div>
+    </div>
+</div>
+
+<!-- 6. TAB PURCHASE ORDERS -->
+<h2 id="tab-po">6. Tab Purchase Orders - Đơn đặt hàng</h2>
+
+<h3>6.1. Mô tả</h3>
+<p>Quản lý toàn bộ đơn đặt hàng từ nhà cung cấp (Purchase Orders) trong hệ thống Openbravo.</p>
+
+<h3>6.2. Bộ lọc (Filter Panel)</h3>
+<table>
+    <tr>
+        <th>Bộ lọc</th>
+        <th>Mô tả</th>
+    </tr>
+    <tr><td><strong>Search</strong></td><td>Tìm theo Document No, Supplier</td></tr>
+    <tr><td><strong>Status</strong></td><td>Lọc theo trạng thái: All, Completed (CO), Draft (DR), Voided (VO)</td></tr>
+    <tr><td><strong>Supplier</strong></td><td>Lọc theo nhà cung cấp</td></tr>
+    <tr><td><strong>From Date</strong></td><td>Ngày bắt đầu</td></tr>
+    <tr><td><strong>To Date</strong></td><td>Ngày kết thúc</td></tr>
+    <tr><td><strong>Pending Items Only</strong></td><td>Chỉ hiện PO còn hàng chưa nhận</td></tr>
+</table>
+
+<h3>6.3. Các thao tác</h3>
+<ul>
+    <li><strong>Toggle Filter</strong>: Ẩn/hiện bảng lọc</li>
+    <li><strong>Refresh</strong>: Tải lại danh sách PO</li>
+    <li><strong>Clear</strong>: Xóa tất cả bộ lọc</li>
+    <li><strong>Apply Filters</strong>: Áp dụng bộ lọc</li>
+</ul>
+
+<!-- 7. TAB GOODS RECEIPTS -->
+<h2 id="tab-gr">7. Tab Goods Receipts - Phiếu nhập kho</h2>
+
+<h3>7.1. Mô tả</h3>
+<p>Quản lý các phiếu nhập kho (Goods Receipts) đã được tạo từ Purchase Orders.</p>
+
+<h3>7.2. Bộ lọc</h3>
+<table>
+    <tr>
+        <th>Bộ lọc</th>
+        <th>Mô tả</th>
+    </tr>
+    <tr><td><strong>Search</strong></td><td>Tìm theo Doc No, Supplier, PO</td></tr>
+    <tr><td><strong>Status</strong></td><td>Draft (DR) hoặc Completed (CO)</td></tr>
+    <tr><td><strong>Supplier</strong></td><td>Lọc theo nhà cung cấp</td></tr>
+    <tr><td><strong>Warehouse</strong></td><td>Lọc theo kho</td></tr>
+    <tr><td><strong>From/To Date</strong></td><td>Khoảng thời gian</td></tr>
+    <tr><td><strong>PO Number</strong></td><td>Số Purchase Order liên quan</td></tr>
+    <tr><td><strong>Pending Only</strong></td><td>Chỉ hiện GR chưa complete</td></tr>
+</table>
+
+<h3>7.3. Các thao tác</h3>
+<ul>
+    <li><strong>Xem chi tiết</strong>: Click vào GR để xem danh sách sản phẩm</li>
+    <li><strong>In PDF</strong>: Xuất phiếu nhập kho ra PDF</li>
+    <li><strong>Complete</strong>: Hoàn thành phiếu nhập (chuyển từ Draft sang Completed)</li>
+</ul>
+
+<!-- 8. TAB WAREHOUSE -->
+<h2 id="tab-warehouse">8. Tab Warehouse - Quản lý kho</h2>
+
+<h3>8.1. Mô tả</h3>
+<p>Quản lý tồn kho theo từng tổ chức, kho, và thực hiện chuyển kho giữa các vị trí.</p>
+
+<h3>8.2. Cấu trúc phân cấp</h3>
+<pre>
+Organizations (Tổ chức)
+└── Warehouses (Kho)
+    └── Locators (Vị trí trong kho)
+        └── Products (Sản phẩm)
+</pre>
+
+<h3>8.3. Bộ lọc trong Warehouse Detail</h3>
+<table>
+    <tr>
+        <th>Bộ lọc</th>
+        <th>Mô tả</th>
+    </tr>
+    <tr><td><strong>Search</strong></td><td>Tìm theo code, name, barcode</td></tr>
+    <tr><td><strong>Location</strong></td><td>Lọc theo vị trí</td></tr>
+    <tr><td><strong>Stock</strong></td><td>In Stock (>0), Low Stock (<10), Out of Stock (=0)</td></tr>
+    <tr><td><strong>Sort By</strong></td><td>Sắp xếp theo Name, Qty, Code</td></tr>
+</table>
+
+<h3>8.4. Chuyển kho (Transfer Stock)</h3>
+<div class="highlight">
+    <h4>Bước 1: Mở form chuyển kho</h4>
+    <p>Click nút <strong>"Transfer Stock"</strong> màu tím</p>
+    
+    <h4>Bước 2: Điền thông tin</h4>
+    <table>
+        <tr><th>Trường</th><th>Mô tả</th></tr>
+        <tr><td><strong>Source Warehouse</strong></td><td>Kho nguồn</td></tr>
+        <tr><td><strong>Source Locator</strong></td><td>Vị trí nguồn</td></tr>
+        <tr><td><strong>Destination Warehouse</strong></td><td>Kho đích</td></tr>
+        <tr><td><strong>Destination Locator</strong></td><td>Vị trí đích</td></tr>
+        <tr><td><strong>Product</strong></td><td>Sản phẩm cần chuyển</td></tr>
+        <tr><td><strong>Quantity</strong></td><td>Số lượng chuyển</td></tr>
+        <tr><td><strong>Notes</strong></td><td>Ghi chú (tùy chọn)</td></tr>
+    </table>
+    
+    <h4>Bước 3: Xác nhận</h4>
+    <p>Click <strong>"Create Movement"</strong> để tạo phiếu chuyển kho</p>
+</div>
+
+<!-- 9. TAB INVOICE EXPORT -->
+<h2 id="tab-invoice">9. Tab Invoice Export - Đơn bán hàng</h2>
+
+<h3>9.1. Mô tả</h3>
+<p>Quản lý đơn bán hàng (Sale Orders) và phiếu xuất kho (Goods Shipments) cho quy trình bán hàng.</p>
+
+<h3>9.2. Bố cục giao diện</h3>
+<p>Màn hình chia làm 2 cột:</p>
+<ul>
+    <li><strong>Cột trái</strong>: Sale Orders (Đơn bán hàng)</li>
+    <li><strong>Cột phải</strong>: Goods Shipments (Phiếu xuất kho)</li>
+</ul>
+
+<h3>9.3. Tạo Sale Order mới</h3>
+<div class="step">
+    <div class="step-number">1</div>
+    <div>Click nút <strong>"Create Sale Order"</strong></div>
+</div>
+<div class="step">
+    <div class="step-number">2</div>
+    <div>Điền thông tin: Customer, Warehouse, Products</div>
+</div>
+<div class="step">
+    <div class="step-number">3</div>
+    <div>Click <strong>"Submit"</strong> để tạo đơn</div>
+</div>
+
+<h3>9.4. Tạo Goods Shipment từ Sale Order</h3>
+<div class="step">
+    <div class="step-number">1</div>
+    <div>Click vào một Sale Order trong danh sách bên trái</div>
+</div>
+<div class="step">
+    <div class="step-number">2</div>
+    <div>Chọn sản phẩm cần xuất</div>
+</div>
+<div class="step">
+    <div class="step-number">3</div>
+    <div>Click <strong>"Create Goods Shipment"</strong></div>
+</div>
+
+<h3>9.5. Xuất dữ liệu</h3>
+<table>
+    <tr>
+        <th>Nút</th>
+        <th>Chức năng</th>
+    </tr>
+    <tr><td><strong>Export Excel</strong></td><td>Xuất toàn bộ SO và GS ra file Excel</td></tr>
+    <tr><td><strong>Export CSV</strong></td><td>Xuất ra file CSV</td></tr>
+</table>
+
+<!-- 10. TAB AI DETECT -->
+<h2 id="tab-ai">10. Tab AI Detect - Phát hiện AI</h2>
+
+<h3>10.1. Mô tả</h3>
+<p>Sử dụng trí tuệ nhân tạo (AI) để phát hiện sản phẩm lỗi và kiểm tra đóng gói hàng hóa.</p>
+
+<h3>10.2. Hai chế độ phát hiện</h3>
+<table>
+    <tr>
+        <th>Chế độ</th>
+        <th>Mục đích</th>
+        <th>Màu</th>
+    </tr>
+    <tr>
+        <td><strong>Product Defect Detection</strong></td>
+        <td>Phát hiện sản phẩm bị lỗi/hư hỏng</td>
+        <td>🔴 Đỏ</td>
+    </tr>
+    <tr>
+        <td><strong>Box Packaging Verification</strong></td>
+        <td>Kiểm tra đóng gói: Hộp + Băng keo + Hóa đơn</td>
+        <td>🟢 Xanh</td>
+    </tr>
+</table>
+
+<h3>10.3. Product Defect Detection</h3>
+<h4>Cách sử dụng</h4>
+<div class="step">
+    <div class="step-number">1</div>
+    <div><strong>Chụp ảnh</strong>: Click <strong>"Use Camera"</strong> để mở camera</div>
+</div>
+<div class="step">
+    <div class="step-number">2</div>
+    <div><strong>Tải ảnh</strong>: Click <strong>"Upload Image"</strong> để chọn file ảnh</div>
+</div>
+<div class="step">
+    <div class="step-number">3</div>
+    <div>Hệ thống AI sẽ phân tích và hiển thị kết quả</div>
+</div>
+
+<h4>Điền thông tin sản phẩm lỗi</h4>
+<table>
+    <tr><th>Trường</th><th>Mô tả</th></tr>
+    <tr><td><strong>Product</strong></td><td>Chọn sản phẩm bị lỗi</td></tr>
+    <tr><td><strong>Defect Type</strong></td><td>Loại lỗi: Dented/Damaged, Missing Parts, Quality Issue, Packaging Damaged</td></tr>
+    <tr><td><strong>Quantity</strong></td><td>Số lượng sản phẩm lỗi</td></tr>
+    <tr><td><strong>Warehouse</strong></td><td>Kho chứa sản phẩm</td></tr>
+    <tr><td><strong>Goods Shipment</strong></td><td>Liên kết với phiếu xuất kho (tùy chọn)</td></tr>
+    <tr><td><strong>Notes</strong></td><td>Ghi chú thêm</td></tr>
+</table>
+
+<h3>10.4. Box Packaging Verification</h3>
+<h4>Mục đích</h4>
+<p>Kiểm tra xem gói hàng có đầy đủ 3 thành phần:</p>
+<ul>
+    <li>✅ <strong>Box</strong>: Hộp carton</li>
+    <li>✅ <strong>Tape</strong>: Băng keo dán</li>
+    <li>✅ <strong>Receipt</strong>: Hóa đơn/phiếu giao hàng</li>
+</ul>
+
+<h4>Kết quả kiểm tra</h4>
+<ul>
+    <li><strong>PASS</strong>: Đủ cả 3 thành phần ✅</li>
+    <li><strong>FAIL</strong>: Thiếu một hoặc nhiều thành phần ❌</li>
+</ul>
+
+<h3>10.5. Xuất báo cáo</h3>
+<table>
+    <tr><th>Nút</th><th>Chức năng</th></tr>
+    <tr><td><strong>Refresh</strong></td><td>Làm mới dữ liệu</td></tr>
+    <tr><td><strong>Excel</strong></td><td>Xuất ra file Excel</td></tr>
+    <tr><td><strong>PDF</strong></td><td>Xuất ra file PDF</td></tr>
+</table>
+
+<!-- 11. SHARE QR CODE -->
+<h2 id="share-qr">11. Chia sẻ QR Code</h2>
+
+<h3>11.1. Truy cập</h3>
+<p>Click icon <strong>Share</strong> (📤) trên thanh navigation</p>
+
+<h3>11.2. Hai loại QR Code</h3>
+<table>
+    <tr><th>QR Code</th><th>Mô tả</th></tr>
+    <tr><td><strong>Barcode App</strong></td><td>Truy cập ứng dụng Barcode Scanner</td></tr>
+    <tr><td><strong>Openbravo ERP</strong></td><td>Truy cập hệ thống Openbravo ERP</td></tr>
+</table>
+
+<h3>11.3. Sử dụng QR Code</h3>
+<div class="step">
+    <div class="step-number">1</div>
+    <div>Mở app quét QR trên điện thoại</div>
+</div>
+<div class="step">
+    <div class="step-number">2</div>
+    <div>Quét mã QR tương ứng</div>
+</div>
+<div class="step">
+    <div class="step-number">3</div>
+    <div>Truy cập ngay vào ứng dụng</div>
+</div>
+
+<div class="info">
+    <strong>Lưu ý:</strong>
+    <ul>
+        <li><strong>Mạng LAN</strong>: Chỉ truy cập được khi cùng mạng WiFi</li>
+        <li><strong>Cloudflare</strong>: Truy cập được từ bất kỳ đâu qua internet</li>
+    </ul>
+</div>
+
+<!-- 12. CLOUDFLARE -->
+<h2 id="cloudflare">12. Truy cập từ xa với Cloudflare</h2>
+
+<h3>12.1. Mô tả</h3>
+<p>Cloudflare Tunnel cho phép truy cập ứng dụng từ bất kỳ đâu trên internet, không cần cùng mạng LAN.</p>
+
+<h3>12.2. Khởi động Cloudflare Tunnels</h3>
+<div class="step">
+    <div class="step-number">1</div>
+    <div>Chạy file <code>cloudflare_tunnels.py</code> hoặc <code>start_cloudflare_tunnels.bat</code></div>
+</div>
+<div class="step">
+    <div class="step-number">2</div>
+    <div>Hệ thống tự động tạo 2 tunnel:
+        <ul>
+            <li>Tunnel cho Barcode App (port 5443)</li>
+            <li>Tunnel cho Openbravo (port 8443)</li>
+        </ul>
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">3</div>
+    <div>URL được lưu vào <code>cloudflare_config.json</code></div>
+</div>
+
+<h3>12.3. Xem URL Cloudflare</h3>
+<ul>
+    <li>Mở Share QR Code modal</li>
+    <li>URL Cloudflare hiển thị dưới mỗi QR Code</li>
+    <li>Ví dụ: <code>https://xxx-xxx-xxx.trycloudflare.com</code></li>
+</ul>
+
+<h3>12.4. Tự động khởi động</h3>
+<ul>
+    <li>Chạy <code>add_to_startup.bat</code> để thêm vào Windows Startup</li>
+    <li>Khi khởi động máy, cả app và Cloudflare tunnels sẽ tự chạy</li>
+</ul>
+
+<!-- 13. FAQ -->
+<h2 id="faq">13. Câu hỏi thường gặp</h2>
+
+<div class="warning">
+    <h4>Q1: Không quét được barcode bằng camera?</h4>
+    <p><strong>A:</strong> Kiểm tra:</p>
+    <ul>
+        <li>Đã cho phép trình duyệt truy cập camera chưa?</li>
+        <li>Camera có bị che hoặc thiếu sáng không?</li>
+        <li>Thử sử dụng HTTPS thay vì HTTP</li>
+    </ul>
+</div>
+
+<div class="warning">
+    <h4>Q2: Không tạo được Goods Receipt?</h4>
+    <p><strong>A:</strong> Kiểm tra:</p>
+    <ul>
+        <li>Đã chọn Warehouse chưa?</li>
+        <li>Đã tick chọn ít nhất 1 sản phẩm chưa?</li>
+        <li>Số lượng nhập có hợp lệ không?</li>
+    </ul>
+</div>
+
+<div class="warning">
+    <h4>Q3: Không kết nối được Openbravo?</h4>
+    <p><strong>A:</strong> Kiểm tra:</p>
+    <ul>
+        <li>Server Openbravo đang chạy không?</li>
+        <li>Thông tin kết nối trong <code>Openbravo.properties</code> đúng chưa?</li>
+        <li>PostgreSQL database đang hoạt động không?</li>
+    </ul>
+</div>
+
+<div class="warning">
+    <h4>Q4: Cloudflare tunnel không hoạt động?</h4>
+    <p><strong>A:</strong> Kiểm tra:</p>
+    <ul>
+        <li>Đã cài đặt <code>cloudflared</code> chưa?</li>
+        <li>Chạy <code>cloudflare_tunnels.py</code> có lỗi gì không?</li>
+        <li>Kiểm tra file <code>cloudflare_config.json</code></li>
+    </ul>
+</div>
+
+<div class="warning">
+    <h4>Q5: AI không phát hiện được?</h4>
+    <p><strong>A:</strong> Kiểm tra:</p>
+    <ul>
+        <li>Model AI đã được cài đặt trong thư mục <code>ModelAI/</code>?</li>
+        <li>Ảnh chụp có đủ sáng và rõ nét không?</li>
+        <li>File model <code>.pt</code> có bị lỗi không?</li>
+    </ul>
+</div>
+
+<div class="warning">
+    <h4>Q6: Làm sao để dừng ứng dụng?</h4>
+    <p><strong>A:</strong></p>
+    <ul>
+        <li>Đóng cửa sổ terminal đang chạy <code>app.py</code></li>
+        <li>Hoặc sử dụng Task Manager để tắt process Python</li>
+    </ul>
+</div>
+
+<div class="warning">
+    <h4>Q7: Làm sao xóa khỏi Windows Startup?</h4>
+    <p><strong>A:</strong> Chạy file <code>remove_from_startup.bat</code></p>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    <h3>📞 Hỗ trợ kỹ thuật</h3>
+    <p>
+        <strong>Email:</strong> support@fpt.edu.vn<br>
+        <strong>Hotline:</strong> 1900-xxxx<br>
+        <strong>Tài liệu online:</strong> <a href="https://docs.openbravo.com">https://docs.openbravo.com</a>
+    </p>
+    
+    <h3>📝 Lịch sử cập nhật</h3>
+    <table style="width: auto; margin: 0 auto;">
+        <tr>
+            <th>Phiên bản</th>
+            <th>Ngày</th>
+            <th>Thay đổi</th>
+        </tr>
+        <tr>
+            <td>1.0</td>
+            <td>03/02/2026</td>
+            <td>Phiên bản đầu tiên</td>
+        </tr>
+    </table>
+    
+    <p style="margin-top: 30px;"><strong>© 2026 FPT University. All rights reserved.</strong></p>
+</div>
+
+</body>
+</html>

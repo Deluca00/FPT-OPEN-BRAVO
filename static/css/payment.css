@@ -1,0 +1,202 @@
+/* Minimal Openbravo-like styling for Payment console */
+:root {
+  --bg: #0f1720;
+  --panel: #111c27;
+  --accent: #1fad4d;
+  --accent-strong: #19c265;
+  --text: #e8f0f7;
+  --muted: #9bb1c7;
+  --danger: #f05d5e;
+  --shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+  --radius: 12px;
+  --font: "Space Grotesk", "Manrope", "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font);
+  background: radial-gradient(circle at 20% 20%, #12243a, #0b1018 45%), linear-gradient(135deg, #0f1720 0%, #0e141d 60%, #0c1019 100%);
+  color: var(--text);
+}
+
+main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: 0.4px;
+}
+
+.brand .subtitle {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+header .actions {
+  display: flex;
+  gap: 10px;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 600;
+  background: var(--accent);
+  color: #06200f;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 160ms ease;
+}
+
+button:hover { transform: translateY(-1px); box-shadow: var(--shadow); background: var(--accent-strong); }
+button:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; transform: none; }
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+}
+
+.card h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+}
+
+.card .value {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.card .sub {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.panel {
+  background: var(--panel);
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: var(--shadow);
+  padding: 18px 18px 12px 18px;
+  margin-bottom: 18px;
+}
+
+.panel h2 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px 16px;
+}
+
+label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+input, select, textarea {
+  width: 100%;
+  background: #0b131d;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  transition: border 120ms ease, box-shadow 120ms ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(31, 173, 77, 0.25);
+}
+
+.table-wrapper {
+  overflow: auto;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+table thead {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+table th, table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 13px;
+}
+
+table th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+table tr:hover td { background: rgba(31, 173, 77, 0.05); }
+
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.badge.in { background: rgba(31, 173, 77, 0.15); color: var(--accent-strong); }
+.badge.out { background: rgba(240, 93, 94, 0.15); color: var(--danger); }
+.badge.muted { background: rgba(255, 255, 255, 0.08); color: var(--muted); }
+
+.flex-between { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+
+.helper { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+.actions-row { display: flex; gap: 8px; }
+
+@media (max-width: 768px) {
+  main { padding: 20px; }
+  header { flex-direction: column; align-items: flex-start; }
+  .table-wrapper { min-width: 100%; }
+}
