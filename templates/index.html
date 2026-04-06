@@ -1239,22 +1239,17 @@
                         <div class="card-body">
                             <p class="text-muted mb-3">Detect defective/damaged products and update inventory</p>
                             
-                            <!-- Camera/Upload -->
-                            <div class="mb-3">
-                                <div class="d-flex gap-2 mb-2">
-                                    <button class="btn btn-primary flex-fill" onclick="startAICamera('defect')">
-                                        <i class="bi bi-camera me-1"></i>Use Camera
-                                    </button>
-                                    <label class="btn btn-outline-primary flex-fill mb-0">
-                                        <i class="bi bi-upload me-1"></i>Upload Image
-                                        <input type="file" accept="image/*" onchange="handleAIImageUpload(event, 'defect')" hidden>
-                                    </label>
-                                </div>
+                            <!-- Camera Live Feed (RTSP) -->
+                            <div id="defectCameraFeed" class="position-relative flex-column gap-2 mb-3 d-flex">
+                                <img id="defectCameraImg" src="" class="img-fluid rounded" style="max-height: 250px; width: 100%; object-fit: contain; background: #000;">
+                                <button class="btn btn-warning w-100 fw-bold" onclick="captureRTSPFrame('defect')">
+                                    <i class="bi bi-bullseye me-1"></i>Chụp & Quét AI
+                                </button>
                             </div>
-                            
-                            <!-- Preview -->
+
+                            <!-- Preview Result (Dưới Video) -->
                             <div id="defectPreview" class="position-relative mb-3 d-none">
-                                <img id="defectImage" src="" class="img-fluid rounded" style="max-height: 250px; width: 100%; object-fit: contain; background: #f8f9fa;">
+                                <img id="defectImage" src="" class="img-fluid rounded border border-danger border-2" style="max-height: 250px; width: 100%; object-fit: contain; background: #f8f9fa;">
                                 <canvas id="defectCanvas" class="position-absolute top-0 start-0" style="pointer-events: none;"></canvas>
                             </div>
                             
@@ -1323,22 +1318,18 @@
                         <div class="card-body">
                             <p class="text-muted mb-3">Verify complete packaging: Box + Tape + Receipt</p>
                             
-                            <!-- Camera/Upload -->
-                            <div class="mb-3">
-                                <div class="d-flex gap-2 mb-2">
-                                    <button class="btn btn-success flex-fill" onclick="startAICamera('box')">
-                                        <i class="bi bi-camera me-1"></i>Use Camera
-                                    </button>
-                                    <label class="btn btn-outline-success flex-fill mb-0">
-                                        <i class="bi bi-upload me-1"></i>Upload Image
-                                        <input type="file" accept="image/*" onchange="handleAIImageUpload(event, 'box')" hidden>
-                                    </label>
-                                </div>
+                            <!-- Camera Live Feed (RTSP) -->
+                            <div id="boxCameraFeed" class="position-relative flex-column gap-2 mb-3 d-flex">
+                                <img id="boxCameraImg" src="" class="img-fluid rounded" style="max-height: 250px; width: 100%; object-fit: contain; background: #000;">
+                                <button class="btn btn-warning w-100 fw-bold" onclick="captureRTSPFrame('box')">
+                                    <i class="bi bi-bullseye me-1"></i>Chụp & Quét AI
+                                </button>
                             </div>
-                            
-                            <!-- Preview (no bounding box canvas) -->
-                            <div id="boxPreview" class="mb-3 d-none">
-                                <img id="boxImage" src="" class="img-fluid rounded" style="max-height: 250px; width: 100%; object-fit: contain; background: #f8f9fa;">
+
+                            <!-- Preview Result (Dưới Video) -->
+                            <div id="boxPreview" class="position-relative mb-3 d-none">
+                                <img id="boxImage" src="" class="img-fluid rounded border border-success border-2" style="max-height: 250px; width: 100%; object-fit: contain; background: #f8f9fa;">
+                                <canvas id="boxCanvas" class="position-absolute top-0 start-0" style="pointer-events: none;"></canvas>
                             </div>
                             
                             <!-- Verification Checklist -->
@@ -4935,8 +4926,16 @@
         let aiDetectionHistory = [];
         let currentAIStream = null;
         let aiModelsLoaded = { defect: false, box: false, accessory: false };
+        let camerasAutoStarted = false;
         
         async function loadAIDetectData() {
+            // Auto start cameras if not yet started
+            if (!camerasAutoStarted) {
+                camerasAutoStarted = true;
+                startAICamera('defect');
+                setTimeout(() => startAICamera('box'), 1000); // 1-second delay between camera connects 
+            }
+
             // Load products for defect form
             try {
                 const res = await fetch('/api/products');
@@ -5085,8 +5084,25 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const imageData = e.target.result;
-                displayAIImage(type, imageData);
-                runAIDetection(type, imageData);
+                const previewDiv = document.getElementById(`${type}Preview`);
+                const img = document.getElementById(`${type}Image`);
+                const canvas = document.getElementById(`${type}Canvas`);
+                
+                // Clear dirty canvas ghosting
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+                
+                previewDiv.classList.remove('d-none');
+                
+                // Wait for image to load fully so we have actual dimensions for the canvas
+                img.onload = function() {
+                    runAIDetection(type, imageData);
+                    img.onload = null; // remove listener
+                };
+                
+                img.src = imageData;
             };
             reader.readAsDataURL(file);
         }
@@ -5156,6 +5172,7 @@
                     // Draw bounding boxes
                     drawDetectionBoxes('defect', data.defects);
                 } else {
+                    // Show success result briefly
                     resultDiv.className = 'alert alert-success';
                     contentDiv.innerHTML = `
                         <div class="mb-2">
@@ -5164,6 +5181,12 @@
                         <p class="mb-0">No defects detected!</p>
                     `;
                     formDiv.classList.add('d-none');
+                    
+                    // Hide the preview image and result div after 1 second
+                    setTimeout(() => {
+                        document.getElementById('defectPreview').classList.add('d-none');
+                        resultDiv.classList.add('d-none');
+                    }, 1000);
                     
                     // Auto-save good product - use selected product from dropdown
                     if (completeCount > 0) {
@@ -5291,13 +5314,25 @@
                 const w = d.width * scaleX;
                 const h = d.height * scaleY;
                 
-                ctx.strokeStyle = d.isDefect ? '#dc3545' : '#28a745';
-                ctx.lineWidth = 2;
+                // Determine color based on type and defect status
+                let color = '#28a745'; // default green
+                if (type === 'defect' && d.isDefect) color = '#dc3545'; // red for defect
+                if (type === 'box') color = '#0dcaf0'; // yellow/blue for box checks
+                
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 3;
                 ctx.strokeRect(x, y, w, h);
                 
-                ctx.fillStyle = d.isDefect ? '#dc3545' : '#28a745';
-                ctx.font = '12px Inter';
-                ctx.fillText(`${d.label} (${Math.round(d.confidence * 100)}%)`, x, y - 5);
+                // Draw label background
+                ctx.fillStyle = color;
+                const text = `${d.label} (${Math.round(d.confidence * 100)}%)`;
+                const textWidth = ctx.measureText(text).width + 10;
+                ctx.fillRect(x, y - 20, textWidth, 20);
+                
+                // Draw label text
+                ctx.fillStyle = '#fff'; // White text
+                ctx.font = 'bold 12px Inter';
+                ctx.fillText(text, x + 5, y - 5);
             });
         }
         
@@ -5884,10 +5919,119 @@
             }
         }
         
-        function startAICamera(type) {
-            showAlert('Camera feature coming soon! Please use image upload for now.', 'info');
-            // TODO: Implement camera stream with real-time detection
+        let activeRTSPCameras = {};
+
+        async function startAICamera(type) {
+            try {
+                // Fetch available cameras
+                const res = await fetch('/api/camera/list');
+                const data = await res.json();
+                
+                if (!data.success || !data.cameras || data.cameras.length === 0) {
+                    showAlert('Không tìm thấy Camera RTSP nào được cấu hình.', 'danger');
+                    return;
+                }
+                
+                // Find camera matching the type ('box' or 'defect')
+                let targetCamera = data.cameras.find(c => c.type === type);
+                if (!targetCamera) targetCamera = data.cameras[0]; // fallback
+                
+                const camId = targetCamera.id;
+                activeRTSPCameras[type] = camId;
+                
+                // Start stream
+                await fetch(`/api/camera/${camId}/start`, { method: 'POST' });
+                
+                // Toggle UI classes
+                document.getElementById(`${type}Preview`).classList.add('d-none');
+                document.getElementById(`${type}CameraFeed`).classList.remove('d-none');
+                document.getElementById(`${type}CameraFeed`).classList.add('d-flex');
+                
+                // Load feed
+                const imgFeed = document.getElementById(`${type}CameraImg`);
+                imgFeed.src = `/api/camera/${camId}/video-feed?t=${new Date().getTime()}`;
+                
+            } catch (e) {
+                showAlert('Lỗi kết nối camera: ' + e.message, 'danger');
+            }
         }
+        
+        function stopRTSPCamera(type) {
+            const feedContainer = document.getElementById(`${type}CameraFeed`);
+            if(feedContainer) {
+                feedContainer.classList.add('d-none');
+                feedContainer.classList.remove('d-flex');
+            }
+            const imgFeed = document.getElementById(`${type}CameraImg`);
+            if(imgFeed) imgFeed.src = '';
+            
+            if (activeRTSPCameras[type]) {
+                delete activeRTSPCameras[type];
+            }
+        }
+        
+        async function captureRTSPFrame(type) {
+            const camId = activeRTSPCameras[type];
+            if (!camId) {
+                showAlert('Chưa kết nối camera!', 'warning');
+                return;
+            }
+            
+            // Tìm nút Capture để chặn spam click
+            const captureBtns = document.querySelectorAll(`button[onclick*="captureRTSPFrame('${type}')"]`);
+            captureBtns.forEach(btn => {
+                btn.disabled = true;
+                btn.dataset.originalHtml = btn.innerHTML;
+                btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...`;
+            });
+            
+            // Clean up the defect form if it's the defect type
+            if (type === 'defect') {
+                const notesField = document.getElementById('defectNotes');
+                if (notesField) notesField.value = '';
+                document.getElementById('defectForm').classList.add('d-none');
+            }
+            
+            try {
+                showAlert('Đang chụp ảnh và phân tích AI...', 'info');
+                // Gửi lệnh chụp tới Endpoint camera
+                const res = await fetch(`/api/camera/${camId}/capture`, { method: 'POST' });
+                const data = await res.json();
+                
+                if (data.success && data.image) {
+                    // Xóa dòng stopRTSPCamera để camera hiện tại vẫn tiếp tục stream Live View
+                    // stopRTSPCamera(type);
+                    
+                    // Convert data URI to Blob manually for maximum compatibility
+                    const dataURI = data.image;
+                    const byteString = atob(dataURI.split(',')[1]);
+                    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+                    const ab = new ArrayBuffer(byteString.length);
+                    const ia = new Uint8Array(ab);
+                    for (let i = 0; i < byteString.length; i++) {
+                        ia[i] = byteString.charCodeAt(i);
+                    }
+                    const blob = new Blob([ab], {type: mimeString});
+                    
+                    const file = new File([blob], `capture_${type}_${Date.now()}.jpg`, { type: mimeString });
+                    
+                    // Tạo một event giả để gọi thẳng function có sẵn
+                    const fakeEvent = { target: { files: [file] } };
+                    handleAIImageUpload(fakeEvent, type);
+                } else {
+                    showAlert('Chụp ảnh thất bại.', 'danger');
+                }
+            } catch (e) {
+                showAlert('Lỗi chụp camera: ' + e.message, 'danger');
+            } finally {
+                // Khôi phục lại nút Capture
+                captureBtns.forEach(btn => {
+                    btn.disabled = false;
+                    btn.innerHTML = btn.dataset.originalHtml;
+                });
+            }
+        }
+
         
         async function autoFillDefectForm(defectCount, productId) {
             // Tự động điền form khi detect được lỗi
@@ -5976,7 +6120,7 @@
                 const selectedProductId = productSelect?.value || null;
                 
                 if (!selectedProductId) {
-                    console.log('No product selected, skipping auto-save');
+                    showAlert('Vui lòng chọn Sản phẩm và Kho trước khi quét!', 'warning');
                     return;
                 }
                 

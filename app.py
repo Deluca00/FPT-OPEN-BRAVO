@@ -4,7 +4,7 @@ Flask Barcode Scanner App for Openbravo
 - Tạo/Update Goods Receipt từ Purchase Order
 """
 
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_from_directory, send_file
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_from_directory, send_file, make_response
 from flask_cors import CORS
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -15,6 +15,10 @@ import base64
 import io
 import json
 from urllib.parse import quote
+import threading
+import time
+import socket
+import re
 
 # Barcode scanning libraries
 BARCODE_SCANNER_AVAILABLE = False
@@ -112,6 +116,141 @@ def generate_uuid():
     return uuid.uuid4().hex.upper()
 
 
+# ==================== RTSP CAMERA CONFIG ====================
+
+# RTSP Camera configuration
+RTSP_CAMERAS = {
+    '100': {
+        'name': 'Camera 100 - Box Check',
+        'url': 'rtsp://admin:L212A477@172.16.251.100:554/cam/realmonitor?channel=1&subtype=0',
+        'type': 'box'  # box, defect, general
+    },
+    '101': {
+        'name': 'Camera 101 - Defect Detection',
+        'url': 'rtsp://admin:L27EEFF1@172.16.251.101:554/cam/realmonitor?channel=1&subtype=0',
+        'type': 'defect'  # box, defect, general
+    }
+}
+
+
+class RTSPCameraManager:
+    """Quản lý kết nối RTSP cameras"""
+    
+    def __init__(self):
+        self.cameras = {}
+        self.threads = {}
+        self.frames = {}
+        self.last_error = {}
+        self.is_running = {}
+        
+        if not CV2_AVAILABLE:
+            print("⚠ OpenCV not available - RTSP camera support disabled")
+            return
+        
+        # Khởi tạo các camera
+        for camera_id, config in RTSP_CAMERAS.items():
+            self.cameras[camera_id] = config
+            self.frames[camera_id] = None
+            self.last_error[camera_id] = None
+            self.is_running[camera_id] = False
+    
+    def start_camera(self, camera_id):
+        """Bắt đầu stream từ camera"""
+        if camera_id not in self.cameras:
+            return False
+        
+        if self.is_running.get(camera_id):
+            return True
+        
+        def capture_frames():
+            try:
+                cap = cv2.VideoCapture(self.cameras[camera_id]['url'])
+                cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Giảm buffer delay
+                
+                if not cap.isOpened():
+                    self.last_error[camera_id] = "Cannot open RTSP stream"
+                    print(f"❌ Camera {camera_id}: {self.last_error[camera_id]}")
+                    return
+                
+                print(f"✓ Camera {camera_id} connected successfully")
+                self.is_running[camera_id] = True
+                
+                while self.is_running[camera_id]:
+                    ret, frame = cap.read()
+                    if ret:
+                        self.frames[camera_id] = frame
+                        self.last_error[camera_id] = None
+                    else:
+                        self.last_error[camera_id] = "Frame read failed"
+                    
+                    time.sleep(0.03)  # ~30 FPS
+                
+                cap.release()
+                print(f"⚠ Camera {camera_id} stream stopped")
+                
+            except Exception as e:
+                self.last_error[camera_id] = str(e)
+                print(f"❌ Camera {camera_id} error: {e}")
+                self.is_running[camera_id] = False
+        
+        # Tạo thread cho stream
+        thread = threading.Thread(target=capture_frames, daemon=True)
+        thread.start()
+        self.threads[camera_id] = thread
+        return True
+    
+    def stop_camera(self, camera_id):
+        """Dừng stream từ camera"""
+        if camera_id in self.cameras:
+            self.is_running[camera_id] = False
+            if camera_id in self.threads:
+                self.threads[camera_id].join(timeout=2)
+    
+    def get_frame(self, camera_id):
+        """Lấy frame hiện tại từ camera"""
+        if camera_id not in self.cameras:
+            return None
+        return self.frames.get(camera_id)
+    
+    def get_frame_jpg(self, camera_id):
+        """Lấy frame dưới dạng JPEG bytes"""
+        frame = self.get_frame(camera_id)
+        if frame is None:
+            return None
+        
+        ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+        if ret:
+            return buffer.tobytes()
+        return None
+    
+    def get_status(self):
+        """Lấy trạng thái tất cả cameras"""
+        status = {}
+        for camera_id, config in self.cameras.items():
+            status[camera_id] = {
+                'name': config['name'],
+                'type': config['type'],
+                'is_running': self.is_running.get(camera_id, False),
+                'has_frame': self.frames.get(camera_id) is not None,
+                'error': self.last_error.get(camera_id)
+            }
+        return status
+
+
+# ==================== INITIALIZE CAMERA MANAGER ====================
+camera_manager = RTSPCameraManager() if CV2_AVAILABLE else None
+
+# Tự động bắt đầu camera streams khi app khởi động
+def start_all_cameras():
+    """Bắt đầu tất cả cameras"""
+    if camera_manager is None:
+        return
+    
+    for camera_id in RTSP_CAMERAS.keys():
+        camera_manager.start_camera(camera_id)
+        time.sleep(0.5)  # Delay giữa các camera
+
+
 # ==================== CLOUDFLARE CONFIG ====================
 
 CLOUDFLARE_CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'cloudflare_config.json')
@@ -143,9 +282,146 @@ def save_cloudflare_config(config):
 
 # ==================== API ENDPOINTS ====================
 
+# ==================== CAMERA ENDPOINTS ====================
+
+@app.route('/api/camera/status')
+def get_camera_status():
+    """Lấy trạng thái tất cả cameras"""
+    if camera_manager is None:
+        return jsonify({'error': 'OpenCV not available'}), 400
+    
+    return jsonify({
+        'success': True,
+        'cameras': camera_manager.get_status()
+    })
+
+
+@app.route('/api/camera/<camera_id>/start', methods=['POST'])
+def start_camera(camera_id):
+    """Bắt đầu stream từ camera cụ thể"""
+    if camera_manager is None:
+        return jsonify({'error': 'OpenCV not available'}), 400
+    
+    if camera_id not in RTSP_CAMERAS:
+        return jsonify({'error': 'Camera not found'}), 404
+    
+    result = camera_manager.start_camera(camera_id)
+    return jsonify({
+        'success': result,
+        'camera_id': camera_id,
+        'message': 'Camera started' if result else 'Camera already running'
+    })
+
+
+@app.route('/api/camera/<camera_id>/stop', methods=['POST'])
+def stop_camera(camera_id):
+    """Dừng stream từ camera cụ thể"""
+    if camera_manager is None:
+        return jsonify({'error': 'OpenCV not available'}), 400
+    
+    if camera_id not in RTSP_CAMERAS:
+        return jsonify({'error': 'Camera not found'}), 404
+    
+    camera_manager.stop_camera(camera_id)
+    return jsonify({
+        'success': True,
+        'camera_id': camera_id,
+        'message': 'Camera stopped'
+    })
+
+
+@app.route('/api/camera/<camera_id>/frame')
+def get_camera_frame(camera_id):
+    """Lấy frame hiện tại từ camera dưới dạng JPEG"""
+    if camera_manager is None:
+        return jsonify({'error': 'OpenCV not available'}), 400
+    
+    if camera_id not in RTSP_CAMERAS:
+        return jsonify({'error': 'Camera not found'}), 404
+    
+    frame_data = camera_manager.get_frame_jpg(camera_id)
+    if frame_data is None:
+        return jsonify({'error': 'No frame available'}), 503
+    
+    return send_file(
+        io.BytesIO(frame_data),
+        mimetype='image/jpeg'
+    )
+
+
+@app.route('/api/camera/<camera_id>/video-feed')
+def get_camera_video_feed(camera_id):
+    """Streaming video feed từ camera (MJPEG)"""
+    if camera_manager is None:
+        return jsonify({'error': 'OpenCV not available'}), 400
+    
+    if camera_id not in RTSP_CAMERAS:
+        return jsonify({'error': 'Camera not found'}), 404
+    
+    def generate_frames():
+        while True:
+            frame_data = camera_manager.get_frame_jpg(camera_id)
+            if frame_data:
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n'
+                       b'Content-Length: ' + str(len(frame_data)).encode() + b'\r\n\r\n'
+                       + frame_data + b'\r\n')
+            time.sleep(0.05)  # ~20 FPS
+    
+    from flask import Response
+    return Response(
+        generate_frames(),
+        mimetype='multipart/x-mixed-replace; boundary=frame'
+    )
+
+
+@app.route('/api/camera/<camera_id>/capture', methods=['POST'])
+def capture_camera_snapshot(camera_id):
+    """Chụp ảnh từ camera và lưu base64 để dùng cho AI detection"""
+    if camera_manager is None:
+        return jsonify({'error': 'OpenCV not available'}), 400
+    
+    if camera_id not in RTSP_CAMERAS:
+        return jsonify({'error': 'Camera not found'}), 404
+    
+    frame_data = camera_manager.get_frame_jpg(camera_id)
+    if frame_data is None:
+        return jsonify({'error': 'No frame available'}), 503
+    
+    # Chuyển thành base64 để client có thể dùng ngay
+    base64_data = base64.b64encode(frame_data).decode('utf-8')
+    
+    return jsonify({
+        'success': True,
+        'camera_id': camera_id,
+        'image': f'data:image/jpeg;base64,{base64_data}',
+        'timestamp': datetime.now().isoformat()
+    })
+
+
+@app.route('/api/camera/list')
+def list_cameras():
+    """Lấy danh sách tất cả cameras đã cấu hình"""
+    cameras = []
+    for camera_id, config in RTSP_CAMERAS.items():
+        cameras.append({
+            'id': camera_id,
+            'name': config['name'],
+            'type': config['type'],
+            'url': config['url'].split('@')[0] + '@[HIDDEN]' if '@' in config['url'] else config['url']  # Ẩn credentials
+        })
+    
+    return jsonify({
+        'success': True,
+        'total': len(cameras),
+        'cameras': cameras
+    })
+
+
 @app.after_request
 def add_no_cache_headers(response):
-    """Disable cache cho tất cả responses"""
+    """Disable cache cho tất cả responses (including static files)"""
+    # Áp dụng cho tất cả responses
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
@@ -158,6 +434,25 @@ def index():
     from flask import make_response
     response = make_response(render_template('index.html'))
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
+
+@app.route('/camera-control')
+def camera_control():
+    """Trang camera control panel - không cache"""
+    static_path = os.path.join(os.path.dirname(__file__), 'static', 'camera-control.html')
+    
+    if not os.path.exists(static_path):
+        return jsonify({'error': 'Camera control page not found'}), 404
+    
+    with open(static_path, 'r', encoding='utf-8') as f:
+        html_content = f.read()
+    
+    response = make_response(html_content)
+    response.headers['Content-Type'] = 'text/html; charset=utf-8'
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
     return response
@@ -6935,18 +7230,34 @@ def get_ai_detection_history():
 
 @app.route('/api/ai-detect', methods=['POST'])
 def ai_detect():
-    """Run AI detection on uploaded image
+    """Run AI detection on uploaded image or camera capture
     Supports 3 detection types:
     - defect: Detect product defects
     - box: Detect box, tape, receipt for packaging verification
     - accessory: Detect accessories in box
+    
+    Request body:
+    {
+        "type": "defect|box|accessory",
+        "image": "base64_image_data or data:image/jpeg;base64,...",
+        "camera_id": "100|101" (optional - if provided, uses camera instead of image)
+    }
     """
     data = request.get_json()
     detection_type = data.get('type', 'defect')
     image_data = data.get('image', '')
+    camera_id = data.get('camera_id', '')
+    
+    # Nếu có camera_id, ưu tiên lấy ảnh từ camera
+    if camera_id and camera_manager:
+        frame_data = camera_manager.get_frame_jpg(camera_id)
+        if frame_data:
+            image_data = base64.b64encode(frame_data).decode('utf-8')
+        else:
+            return jsonify({'success': False, 'error': f'Cannot capture from camera {camera_id}'}), 400
     
     if not image_data:
-        return jsonify({'success': False, 'error': 'No image provided'}), 400
+        return jsonify({'success': False, 'error': 'No image provided and no camera specified'}), 400
     
     try:
         # Check if YOLO models are available - models are in modelAI folder
@@ -7767,5 +8078,48 @@ if __name__ == '__main__':
                 print(f"   📦 Openbravo:   {openbravo_url}/openbravo")
             print("=" * 60)
             print()
+    
+    # ==================== INITIALIZE CAMERAS ====================
+    print()
+    print("=" * 60)
+    print("   📹 INITIALIZING RTSP CAMERAS")
+    print("=" * 60)
+    
+    if camera_manager is not None:
+        # Bắt đầu tất cả cameras
+        start_all_cameras()
+        
+        # Chờ cameras khởi động và nhận frames
+        print("   ⏳ Waiting for cameras to connect...", end='', flush=True)
+        max_wait = 10  # Max 10 seconds
+        for i in range(max_wait):
+            time.sleep(0.5)
+            camera_status = camera_manager.get_status()
+            all_ready = all(
+                status['is_running'] and status['has_frame'] 
+                for status in camera_status.values()
+            )
+            if all_ready:
+                print(" ✅ All cameras ready!")
+                break
+            print(".", end='', flush=True)
+        else:
+            print(" ⏱️ Timeout (showing status anyway)")
+        
+        print()
+        
+        # Hiển thị trạng thái cameras
+        camera_status = camera_manager.get_status()
+        for camera_id, status in camera_status.items():
+            status_icon = "✅" if status['is_running'] and status['has_frame'] else "❌"
+            print(f"   {status_icon} {status['name']}")
+            if status['error']:
+                print(f"      ⚠️  Error: {status['error']}")
+        print("=" * 60)
+        print()
+    else:
+        print("   ⚠️  OpenCV not available - Camera support disabled")
+        print("=" * 60)
+        print()
     
     app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)

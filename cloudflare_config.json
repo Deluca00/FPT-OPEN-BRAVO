@@ -1,12 +1,12 @@
 {
     "enabled": true,
     "barcode_app": {
-        "tunnel_url": "https://may-spoke-wrestling-expression.trycloudflare.com",
+        "tunnel_url": "https://route-cities-segment-concerts.trycloudflare.com",
         "local_port": 5443,
         "description": "Barcode Scanner App"
     },
     "openbravo": {
-        "tunnel_url": "https://correctly-quoted-being-consist.trycloudflare.com",
+        "tunnel_url": "https://circuit-serial-dialog-policies.trycloudflare.com",
         "local_port": 8080,
         "description": "Openbravo ERP"
     },

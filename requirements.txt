@@ -9,10 +9,13 @@ pillow>=10.0.0
 pandas>=2.0.0
 openpyxl>=3.1.0
 
+# Required for Camera Support (RTSP streaming)
+opencv-python>=4.8.0
+numpy>=1.24.0
+
 # Optional: AI Detection (YOLO)
-# Uncomment the following lines to enable AI detection:
+# Uncomment to enable AI detection:
 # ultralytics>=8.0.0
-# opencv-python>=4.8.0
 
 # Optional: SSL Certificate Generation
 # pyOpenSSL>=23.0.0
